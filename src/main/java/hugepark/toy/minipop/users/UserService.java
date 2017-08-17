@@ -12,7 +12,11 @@ import java.util.Optional;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
+import hugepark.toy.minipop.users.UserDto.Request;
 
 @Service
 public class UserService {
@@ -20,7 +24,7 @@ public class UserService {
 	@Autowired
 	private UserRepository repository;
 	
-	public Optional<User> createUser(UserDto.Create dto) {
+	public Optional<User> createUser(Request.Create dto) {
 		User user = new User();
 		BeanUtils.copyProperties(dto, user);
 		
@@ -43,5 +47,9 @@ public class UserService {
 
 	public Optional<User> findByUsername(String username) {
 		return repository.findByUsername(username);
+	}
+
+	public Page<User> findAll(Pageable pageable) {
+		return repository.findAll(pageable);
 	}
 }

@@ -1,5 +1,5 @@
 /**
- * ref. https://spring.io/guides/tutorials/bookmarks/
+ * REF. https://spring.io/guides/tutorials/bookmarks/
  *
  * @author : hugepark1123
  * @date : 2017-08-16
@@ -27,6 +27,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import hugepark.toy.minipop.users.UserDto.Request;
+
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -50,7 +52,7 @@ public class UserControllerTest {
 	@Test
 	public void createUser() throws Exception {
 		
-		UserDto.Create create = new UserDto.Create();
+		Request.Create create = new Request.Create();
 		create.setLoginId("testid01");
 		create.setUsername("홍길동");
 		create.setPassword("1234");
@@ -68,7 +70,7 @@ public class UserControllerTest {
 	@Test
 	public void createUser_Duplicated() throws Exception {
 		
-		UserDto.Create create = new UserDto.Create();
+		Request.Create create = new Request.Create();
 		create.setLoginId("testid01");
 		create.setUsername("홍길동");
 		create.setPassword("1234");
@@ -101,16 +103,17 @@ public class UserControllerTest {
 	
 	@Test
 	public void getUsers() throws Exception {
-		UserDto.Create create = new UserDto.Create();
+		Request.Create create = new Request.Create();
 		create.setLoginId("testid01");
 		create.setUsername("홍길동");
 		create.setPassword("1234");
-		
+
 		this.mockMvc
 		.perform(
 				post("/api/users")
 				.contentType(MediaType.APPLICATION_JSON_UTF8)
-				.content(objectMapper.writeValueAsString(create)));		
+				.content(objectMapper.writeValueAsString(create)));
+		
 		this.mockMvc
 		.perform(get("/api/users"))
 		.andDo(print())
@@ -118,8 +121,16 @@ public class UserControllerTest {
 	}
 	
 	@Test
+	public void getUsers_noContent() throws Exception {
+		this.mockMvc
+		.perform(get("/api/users"))
+		.andDo(print())
+		.andExpect(status().isNoContent());
+	}
+	
+	@Test
 	public void getUser_by_id() throws Exception {
-		UserDto.Create create = new UserDto.Create();
+		Request.Create create = new Request.Create();
 		create.setLoginId("testid01");
 		create.setUsername("홍길동");
 		create.setPassword("1234");
@@ -138,7 +149,7 @@ public class UserControllerTest {
 	
 	@Test
 	public void getUser_notFound_by_id() throws Exception {
-		UserDto.Create create = new UserDto.Create();
+		Request.Create create = new Request.Create();
 		create.setLoginId("testid01");
 		create.setUsername("홍길동");
 		create.setPassword("1234");
@@ -156,7 +167,7 @@ public class UserControllerTest {
 	
 	@Test
 	public void getUser_by_letter_id() throws Exception {
-		UserDto.Create create = new UserDto.Create();
+		Request.Create create = new Request.Create();
 		create.setLoginId("testid01");
 		create.setUsername("홍길동");
 		create.setPassword("1234");
@@ -174,7 +185,7 @@ public class UserControllerTest {
 	
 	@Test
 	public void getUser_by_username() throws Exception {
-		UserDto.Create create = new UserDto.Create();
+		Request.Create create = new Request.Create();
 		create.setLoginId("testid01");
 		create.setUsername("홍길동");
 		create.setPassword("1234");
@@ -195,7 +206,7 @@ public class UserControllerTest {
 	
 	@Test
 	public void getUser_notFound_by_username() throws Exception {
-		UserDto.Create create = new UserDto.Create();
+		Request.Create create = new Request.Create();
 		create.setLoginId("testid01");
 		create.setUsername("홍길동");
 		create.setPassword("1234");

@@ -16,21 +16,34 @@ import lombok.Setter;
 
 public class UserDto {
 
-	@Getter @Setter
-	public static class Create {
-		@NotBlank
-		@Size(min = 5, max = 20)
-		private String loginId;
+	public static class Request {
+
+		@Getter @Setter
+		public static class Create {
+			@NotBlank
+			@Size(min = 5, max = 20)
+			private String loginId;
+			
+			@NotBlank
+			@Size(min = 2, max = 20)
+			private String username;
+			
+			@NotBlank
+			@Size(min = 4, max = 20)
+			private String password;
+			
+			private String shift;
+		}
 		
-		@NotBlank
-		@Size(min = 2, max = 20)
-		private String username;
+		@Getter @Setter
+		public static class Update {
+			
+		}
 		
-		@NotBlank
-		@Size(min = 4, max = 20)
-		private String password;
-		
-		private String shift;
+		@Getter @Setter
+		public static class Delete {
+			
+		}
 	}
 	
 	@Getter @Setter

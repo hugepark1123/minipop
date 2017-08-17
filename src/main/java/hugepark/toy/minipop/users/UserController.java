@@ -16,6 +16,9 @@ import javax.validation.Valid;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -31,6 +34,7 @@ import org.springframework.web.bind.annotation.RestController;
 import hugepark.toy.minipop.commons.ApiError;
 import hugepark.toy.minipop.commons.ApiError.FieldError;
 import hugepark.toy.minipop.commons.ApiError.GlobalError;
+import hugepark.toy.minipop.users.UserDto.Request;
 
 @RestController
 @RequestMapping("/api")
@@ -43,7 +47,7 @@ public class UserController {
 	public ResponseEntity<?> createUser(
 			@RequestBody
 			@Valid
-			UserDto.Create dto, BindingResult result) {
+			Request.Create dto, BindingResult result) {
 		
 		if(result.hasErrors()) {
 			List<FieldError> fieldErrors = result.getFieldErrors().stream()
@@ -79,13 +83,24 @@ public class UserController {
 	}
 	
 	@GetMapping("/users")
-	public ResponseEntity<?> getUsers() {
-		List<User> users = service.findAll();
+	public ResponseEntity<?> getUsers(Pageable pageable) {
+		Page<User> page = service.findAll(pageable);
 		
-		if(users.isEmpty())
+		if(page.hasContent() == false) {
 			return ResponseEntity.noContent().build();
+		}
 		
-		return ResponseEntity.ok(users);
+		List<UserDto.Reponse> content = page.getContent().stream()
+			.map(user -> {
+				UserDto.Reponse dto = new UserDto.Reponse();
+				BeanUtils.copyProperties(user, dto);
+				return dto;
+			})
+			.collect(Collectors.toList());
+		
+		PageImpl<UserDto.Reponse> result = new PageImpl<>(content, pageable, page.getTotalElements());
+		
+		return ResponseEntity.ok(result);
 	}
 	
 	@GetMapping("/users/{id}")
@@ -114,7 +129,7 @@ public class UserController {
 				"loginId",
 				"Duplicated",
 				e.getLoginId(),
-				"Duplicated user");
+				"duplicated.user");
 		ApiError error = new ApiError();
 		error.setFieldErrors(Arrays.asList(fieldError));
 		
