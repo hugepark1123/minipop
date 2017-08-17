@@ -7,6 +7,8 @@
  */
 package hugepark.toy.minipop.users;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -14,16 +16,21 @@ import javax.validation.Valid;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import hugepark.toy.minipop.commons.ErrorResponse;
+import hugepark.toy.minipop.commons.ApiError;
+import hugepark.toy.minipop.commons.ApiError.FieldError;
+import hugepark.toy.minipop.commons.ApiError.GlobalError;
 
 @RestController
 @RequestMapping("/api")
@@ -39,12 +46,23 @@ public class UserController {
 			UserDto.Create dto, BindingResult result) {
 		
 		if(result.hasErrors()) {
-			ErrorResponse error = new ErrorResponse();
-			error.setCode("bad.request");
-			error.setMessage(
-					result.getAllErrors().stream()
-					.map(msg -> msg.getDefaultMessage())
-					.collect(Collectors.joining(",")));
+			List<FieldError> fieldErrors = result.getFieldErrors().stream()
+				.map(error ->
+					new FieldError(
+							error.getField(),
+							error.getCode(),
+							error.getRejectedValue(),
+							error.getDefaultMessage()))
+				.collect(Collectors.toList());
+			List<GlobalError> globalErrors = result.getGlobalErrors().stream()
+					.map(error -> 
+						new GlobalError(
+							error.getCode(), 
+							error.getDefaultMessage()))
+					.collect(Collectors.toList());
+			ApiError error = new ApiError();
+			error.setFieldErrors(fieldErrors);
+			error.setGlobalErrors(globalErrors);
 			return ResponseEntity.badRequest().body(error);
 		}
 		
@@ -58,5 +76,48 @@ public class UserController {
 		BeanUtils.copyProperties(user.get(), response);
 		
 		return new ResponseEntity<>(response, HttpStatus.CREATED);
+	}
+	
+	@GetMapping("/users")
+	public ResponseEntity<?> getUsers() {
+		List<User> users = service.findAll();
+		
+		if(users.isEmpty())
+			return ResponseEntity.noContent().build();
+		
+		return ResponseEntity.ok(users);
+	}
+	
+	@GetMapping("/users/{id}")
+	public ResponseEntity<?> getUser(@PathVariable Long id) {
+		Optional<User> users = service.findOne(id);
+		
+		if(users.isPresent() == false)
+			return ResponseEntity.notFound().build();
+		
+		return ResponseEntity.ok(users.get());
+	}
+	
+	@GetMapping(value="/users", params="username")
+	public ResponseEntity<?> getUser(@RequestParam String username) {
+		Optional<User> users = service.findByUsername(username);
+		
+		if(users.isPresent() == false)
+			return ResponseEntity.notFound().build();
+		
+		return ResponseEntity.ok(users.get());
+	}
+	
+	@ExceptionHandler(UserDuplicatedException.class)
+	public ResponseEntity<?> handleUserDuplicatedException(UserDuplicatedException e) {
+		FieldError fieldError = new FieldError(
+				"loginId",
+				"Duplicated",
+				e.getLoginId(),
+				"Duplicated user");
+		ApiError error = new ApiError();
+		error.setFieldErrors(Arrays.asList(fieldError));
+		
+		return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
 	}
 }

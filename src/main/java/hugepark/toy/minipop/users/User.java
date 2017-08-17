@@ -7,13 +7,13 @@
  */
 package hugepark.toy.minipop.users;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.validation.constraints.Size;
 
 import org.hibernate.validator.constraints.NotBlank;
-import org.hibernate.validator.constraints.NotEmpty;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -27,13 +27,14 @@ public class User {
 	
 	@NotBlank
 	@Size(min = 5)
+	@Column(unique = true)
 	private String loginId;
 
 	@NotBlank
 	@Size(min = 3)
 	private String username;
 	
-	@NotEmpty
+	@NotBlank
 	@Size(min = 4)
 	private String password;
 	

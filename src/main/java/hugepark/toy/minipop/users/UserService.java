@@ -7,6 +7,7 @@
  */
 package hugepark.toy.minipop.users;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.BeanUtils;
@@ -23,8 +24,24 @@ public class UserService {
 		User user = new User();
 		BeanUtils.copyProperties(dto, user);
 		
+		if(repository.findByLoginId(dto.getLoginId()).isPresent()) {
+			throw new UserDuplicatedException(dto.getLoginId());
+		}
+
 		// TODO password encoding
 		
 		return Optional.ofNullable(repository.save(user));
+	}
+
+	public List<User> findAll() {
+		return repository.findAll();
+	}
+	
+	public Optional<User> findOne(Long id) {
+		return Optional.ofNullable(repository.findOne(id));
+	}
+
+	public Optional<User> findByUsername(String username) {
+		return repository.findByUsername(username);
 	}
 }
