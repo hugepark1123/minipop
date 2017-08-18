@@ -33,7 +33,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import hugepark.toy.minipop.commons.ApiError;
 import hugepark.toy.minipop.commons.ApiError.FieldError;
-import hugepark.toy.minipop.commons.ApiError.GlobalError;
 import hugepark.toy.minipop.users.UserDto.Request;
 
 @RestController
@@ -44,42 +43,43 @@ public class UserController {
 	private UserService service;
 	
 	@PostMapping("/users")
-	public ResponseEntity<?> createUser(
+	public ResponseEntity<?> createUser (
 			@RequestBody
 			@Valid
 			Request.Create dto, BindingResult result) {
 		
-		if(result.hasErrors()) {
-			List<FieldError> fieldErrors = result.getFieldErrors().stream()
-				.map(error ->
-					new FieldError(
-							error.getField(),
-							error.getCode(),
-							error.getRejectedValue(),
-							error.getDefaultMessage()))
-				.collect(Collectors.toList());
-			List<GlobalError> globalErrors = result.getGlobalErrors().stream()
-					.map(error -> 
-						new GlobalError(
-							error.getCode(), 
-							error.getDefaultMessage()))
-					.collect(Collectors.toList());
-			ApiError error = new ApiError();
-			error.setFieldErrors(fieldErrors);
-			error.setGlobalErrors(globalErrors);
-			return ResponseEntity.badRequest().body(error);
-		}
+		throw new UserDuplicatedException("error handler test");
 		
-		Optional<User> user = service.createUser(dto);
+//		if(result.hasErrors()) {
+//			List<FieldError> fieldErrors = result.getFieldErrors().stream()
+//				.map(error ->
+//					new FieldError(
+//							error.getField(),
+//							error.getCode(),
+//							error.getRejectedValue(),
+//							error.getDefaultMessage()))
+//				.collect(Collectors.toList());
+//			List<GlobalError> globalErrors = result.getGlobalErrors().stream()
+//					.map(error -> 
+//						new GlobalError(
+//							error.getCode(), 
+//							error.getDefaultMessage()))
+//					.collect(Collectors.toList());
+//			ApiError error = new ApiError();
+//			error.setFieldErrors(fieldErrors);
+//			error.setGlobalErrors(globalErrors);
+//			return ResponseEntity.badRequest().body(error);
+//		}
 		
-		if(user.isPresent() == false) {
-			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-		}
-		
-		UserDto.Reponse response = new UserDto.Reponse();
-		BeanUtils.copyProperties(user.get(), response);
-		
-		return new ResponseEntity<>(response, HttpStatus.CREATED);
+//		Optional<User> user = service.createUser(dto);
+//		
+//		if(user.isPresent() == false) {
+//			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+//		}
+//		
+//		UserDto.Reponse response = new UserDto.Reponse();
+//		BeanUtils.copyProperties(user.get(), response);
+
 	}
 	
 	@GetMapping("/users")
@@ -123,16 +123,16 @@ public class UserController {
 		return ResponseEntity.ok(users.get());
 	}
 	
-	@ExceptionHandler(UserDuplicatedException.class)
-	public ResponseEntity<?> handleUserDuplicatedException(UserDuplicatedException e) {
-		FieldError fieldError = new FieldError(
-				"loginId",
-				"Duplicated",
-				e.getLoginId(),
-				"duplicated.user");
-		ApiError error = new ApiError();
-		error.setFieldErrors(Arrays.asList(fieldError));
-		
-		return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
-	}
+//	@ExceptionHandler(UserDuplicatedException.class)
+//	public ResponseEntity<?> handleUserDuplicatedException(UserDuplicatedException e) {
+//		FieldError fieldError = new FieldError(
+//				"loginId",
+//				"Duplicated",
+//				e.getLoginId(),
+//				"duplicated.user");
+//		ApiError error = new ApiError();
+//		error.setFieldErrors(Arrays.asList(fieldError));
+//		
+//		return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+//	}
 }

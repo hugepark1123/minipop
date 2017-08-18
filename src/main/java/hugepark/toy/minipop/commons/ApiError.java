@@ -8,6 +8,7 @@
 package hugepark.toy.minipop.commons;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import lombok.AllArgsConstructor;
@@ -16,6 +17,10 @@ import lombok.Setter;
 
 @Getter @Setter
 public class ApiError {
+	private String code;
+	private String name;
+	private String message;
+	private Date time;
 
 	private List<GlobalError> globalErrors = new ArrayList<>();
 	private List<FieldError> fieldErrors = new ArrayList<>();
