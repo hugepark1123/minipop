@@ -14,10 +14,8 @@ public class UserDuplicatedException extends RuntimeException {
 
 	private static final long serialVersionUID = 8984837209807642968L;
 	
-	private String loginId;
-	
-	public UserDuplicatedException(String loginId) {
-		this.loginId = loginId;
+	public UserDuplicatedException(String message) {
+		super(message);
 	}
 
 }

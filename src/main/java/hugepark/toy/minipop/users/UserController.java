@@ -7,7 +7,6 @@
  */
 package hugepark.toy.minipop.users;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -22,7 +21,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -32,8 +30,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import hugepark.toy.minipop.commons.ApiError;
-import hugepark.toy.minipop.commons.ApiError.FieldError;
+import hugepark.toy.minipop.commons.HttpRequestExceptionType;
 import hugepark.toy.minipop.users.UserDto.Request;
+import hugepark.toy.minipop.utils.Utils;
 
 @RestController
 @RequestMapping("/api")
@@ -46,40 +45,27 @@ public class UserController {
 	public ResponseEntity<?> createUser (
 			@RequestBody
 			@Valid
-			Request.Create dto, BindingResult result) {
+			Request.Create dto, BindingResult result) 
+	throws Exception {
+		if(result.hasErrors()) {
+			ApiError error = ApiError.build(
+					HttpStatus.BAD_REQUEST, 
+					HttpRequestExceptionType.EXPECTED, 
+					result);
+			return ResponseEntity.badRequest().body(error);
+		}
 		
-		throw new UserDuplicatedException("error handler test");
+		Optional<User> user = service.createUser(dto);
 		
-//		if(result.hasErrors()) {
-//			List<FieldError> fieldErrors = result.getFieldErrors().stream()
-//				.map(error ->
-//					new FieldError(
-//							error.getField(),
-//							error.getCode(),
-//							error.getRejectedValue(),
-//							error.getDefaultMessage()))
-//				.collect(Collectors.toList());
-//			List<GlobalError> globalErrors = result.getGlobalErrors().stream()
-//					.map(error -> 
-//						new GlobalError(
-//							error.getCode(), 
-//							error.getDefaultMessage()))
-//					.collect(Collectors.toList());
-//			ApiError error = new ApiError();
-//			error.setFieldErrors(fieldErrors);
-//			error.setGlobalErrors(globalErrors);
-//			return ResponseEntity.badRequest().body(error);
-//		}
+		if(user.isPresent() == false) {
+			throw new Exception("User creation failed");
+		}
 		
-//		Optional<User> user = service.createUser(dto);
-//		
-//		if(user.isPresent() == false) {
-//			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-//		}
-//		
-//		UserDto.Reponse response = new UserDto.Reponse();
-//		BeanUtils.copyProperties(user.get(), response);
-
+		return ResponseEntity
+				.status(HttpStatus.CREATED)
+				.body(Utils.copyBean(
+						user.get(), 
+						UserDto.Reponse.class));
 	}
 	
 	@GetMapping("/users")
@@ -105,22 +91,28 @@ public class UserController {
 	
 	@GetMapping("/users/{id}")
 	public ResponseEntity<?> getUser(@PathVariable Long id) {
-		Optional<User> users = service.findOne(id);
+		Optional<User> user = service.findOne(id);
 		
-		if(users.isPresent() == false)
+		if(user.isPresent() == false)
 			return ResponseEntity.notFound().build();
 		
-		return ResponseEntity.ok(users.get());
+		return ResponseEntity.ok(
+				Utils.copyBean(
+						user.get(),
+						UserDto.Reponse.class));
 	}
 	
 	@GetMapping(value="/users", params="username")
 	public ResponseEntity<?> getUser(@RequestParam String username) {
-		Optional<User> users = service.findByUsername(username);
+		Optional<User> user = service.findByUsername(username);
 		
-		if(users.isPresent() == false)
+		if(user.isPresent() == false)
 			return ResponseEntity.notFound().build();
 		
-		return ResponseEntity.ok(users.get());
+		return ResponseEntity.ok(
+				Utils.copyBean(
+						user.get(),
+						UserDto.Reponse.class));
 	}
 	
 //	@ExceptionHandler(UserDuplicatedException.class)

@@ -15,10 +15,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import hugepark.toy.minipop.users.UserDto.Request;
 
 @Service
+@Transactional
 public class UserService {
 
 	@Autowired
@@ -29,7 +31,7 @@ public class UserService {
 		BeanUtils.copyProperties(dto, user);
 		
 		if(repository.findByLoginId(dto.getLoginId()).isPresent()) {
-			throw new UserDuplicatedException(dto.getLoginId());
+			throw new UserDuplicatedException("loginId [" + dto.getLoginId() + "] is duplicated");
 		}
 
 		// TODO password encoding

@@ -15,28 +15,21 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import lombok.extern.slf4j.Slf4j;
-
 @RestControllerAdvice
-@Slf4j
 @ResponseStatus
-public class CommonExceptionHandler {
+public class UnexpectedExceptionHandler {
+	
+	final private HttpRequestExceptionType type = HttpRequestExceptionType.UNEXPECTED;
 	
 	@ExceptionHandler(Exception.class)
-	public ApiError handleError(HttpServletRequest req, Exception exception)
+	public ApiError handleError(HttpServletRequest req, Exception e)
 			throws RuntimeException {
 
-		if (AnnotationUtils.findAnnotation(exception.getClass(),
+		if (AnnotationUtils.findAnnotation(
+				e.getClass(),
 				ResponseStatus.class) != null)
 			throw new RuntimeException();
-
-		log.error("Request: {} raised: {}, reqInfo: {}", req.getRequestURI(), exception.getLocalizedMessage());
 		
-		ApiError error = new ApiError();
-		error.setCode(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()));
-		error.setName(HttpStatus.INTERNAL_SERVER_ERROR.name());
-		error.setMessage(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase());
-		
-		return error;
+		return ApiError.build(req, HttpStatus.INTERNAL_SERVER_ERROR, e, type);
 	}
 }

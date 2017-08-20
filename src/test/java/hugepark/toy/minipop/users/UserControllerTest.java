@@ -7,7 +7,6 @@
  */
 package hugepark.toy.minipop.users;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -15,14 +14,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.Optional;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -41,187 +44,129 @@ public class UserControllerTest {
 	@Autowired
 	private MockMvc mockMvc;
 	
+//	@Autowired
+//	private UserController userController;
+	
 	@Autowired
-	private UserController userController;
+	private UserService userService;
 	
-	@Test
-	public void testUserController() {
-		assertThat(userController).isNotNull();
-	}
+//	@Rollback @Test
+//	public void testUserController() {
+//		assertThat(userController).isNotNull();
+//	}
 	
-	@Test
+	@Rollback @Test
 	public void createUser() throws Exception {
-		
+		// invalid user create
 		Request.Create create = new Request.Create();
 		create.setLoginId("testid01");
-		create.setUsername("홍길동");
+		create.setUsername("홍");
 		create.setPassword("1234");
 		
-		this.mockMvc
-		.perform(
-				post("/api/users")
-				.contentType(MediaType.APPLICATION_JSON_UTF8)
-				.content(objectMapper.writeValueAsString(create)))
-		.andDo(print())
-		.andExpect(status().isCreated())
-		.andExpect(jsonPath("$.username", is("홍길동")));
-	}
-	
-	@Test
-	public void createUser_Duplicated() throws Exception {
+		ResultActions result = this.mockMvc
+			.perform(
+					post("/api/users")
+					.contentType(MediaType.APPLICATION_JSON_UTF8)
+					.content(objectMapper.writeValueAsString(create)));
+		result.andDo(print());
+		result.andExpect(status().isBadRequest());
+		result.andExpect(jsonPath("$.fieldErrors[0].field", is("username")));
 		
-		Request.Create create = new Request.Create();
-		create.setLoginId("testid01");
+		// valid user create
 		create.setUsername("홍길동");
-		create.setPassword("1234");
 		
-		this.mockMvc
-		.perform(
-				post("/api/users")
-				.contentType(MediaType.APPLICATION_JSON_UTF8)
-				.content(objectMapper.writeValueAsString(create)))
-		.andDo(print())
-		.andExpect(status().isCreated())
-		.andExpect(jsonPath("$.loginId", is("testid01")));
+		result = this.mockMvc
+				.perform(
+						post("/api/users")
+						.contentType(MediaType.APPLICATION_JSON_UTF8)
+						.content(objectMapper.writeValueAsString(create)));
+		result.andDo(print());
+		result.andExpect(status().isCreated());
+		result.andExpect(jsonPath("$.username", is("홍길동")));
 		
-		this.mockMvc
-		.perform(
-				post("/api/users")
-				.contentType(MediaType.APPLICATION_JSON_UTF8)
-				.content(objectMapper.writeValueAsString(create)))
-		.andDo(print())
-		.andExpect(status().isConflict());
+		// duplicated user create
+		result = this.mockMvc
+				.perform(
+						post("/api/users")
+						.contentType(MediaType.APPLICATION_JSON_UTF8)
+						.content(objectMapper.writeValueAsString(create)));
+		result.andDo(print());
+		result.andExpect(status().isConflict());
+		result.andExpect(jsonPath("$.code", is("409")));
 	}
 	
-	@Test
-	public void getEmptyUsers() throws Exception {
-		this.mockMvc
-		.perform(get("/api/users"))
-		.andDo(print())
-		.andExpect(status().isNoContent());
-	}
-	
-	@Test
+	@Rollback @Test
 	public void getUsers() throws Exception {
+		// get all user but empty
+		ResultActions result = this.mockMvc.perform(get("/api/users"));
+		result.andDo(print());
+		result.andExpect(status().isNoContent());
+		
+		// get all user and OK
 		Request.Create create = new Request.Create();
-		create.setLoginId("testid01");
-		create.setUsername("홍길동");
-		create.setPassword("1234");
+		create.setLoginId("testuser01");
+		create.setUsername("testusername01");
+		create.setPassword("password01");
+		
+		userService.createUser(create);
 
-		this.mockMvc
-		.perform(
-				post("/api/users")
-				.contentType(MediaType.APPLICATION_JSON_UTF8)
-				.content(objectMapper.writeValueAsString(create)));
-		
-		this.mockMvc
-		.perform(get("/api/users"))
-		.andDo(print())
-		.andExpect(status().isOk());
+		result = this.mockMvc.perform(get("/api/users"));
+		result.andDo(print());
+		result.andExpect(status().isOk());
+		result.andExpect(jsonPath("$.content[0].username", is("testusername01")));
 	}
 	
-	@Test
-	public void getUsers_noContent() throws Exception {
-		this.mockMvc
-		.perform(get("/api/users"))
-		.andDo(print())
-		.andExpect(status().isNoContent());
-	}
-	
-	@Test
+	@Rollback @Test
 	public void getUser_by_id() throws Exception {
-		Request.Create create = new Request.Create();
-		create.setLoginId("testid01");
-		create.setUsername("홍길동");
-		create.setPassword("1234");
+		// get ONE valid user but not found
+		ResultActions result = this.mockMvc.perform(get("/api/users/{id}", 200L));
+		result.andDo(print());
+		result.andExpect(status().isNotFound());
 		
-		this.mockMvc
-		.perform(
-				post("/api/users")
-				.contentType(MediaType.APPLICATION_JSON_UTF8)
-				.content(objectMapper.writeValueAsString(create)));		
-		this.mockMvc
-		.perform(get("/api/users/{id}", 2L))
-		.andDo(print())
-		.andExpect(status().isNotFound());
-//		.andExpect(jsonPath("$.username",is("홍길동")));
+		// get ONE invalid user but bad request
+		result = this.mockMvc.perform(get("/api/users/{id}", "StringValueNotNumber"));
+		result.andDo(print());
+		result.andExpect(status().isBadRequest());
+		
+		// get ONE valid user and OK
+		Request.Create create = new Request.Create();
+		create.setLoginId("testuser01");
+		create.setUsername("testusername01");
+		create.setPassword("password01");
+		
+		Optional<User> user = userService.createUser(create);
+		
+		result = this.mockMvc.perform(get("/api/users/{id}", user.get().getId()));
+		result.andDo(print());
+		result.andExpect(status().isOk());
+		result.andExpect(jsonPath("$.username",is("testusername01")));
 	}
 	
-	@Test
-	public void getUser_notFound_by_id() throws Exception {
-		Request.Create create = new Request.Create();
-		create.setLoginId("testid01");
-		create.setUsername("홍길동");
-		create.setPassword("1234");
-		
-		this.mockMvc
-		.perform(
-				post("/api/users")
-				.contentType(MediaType.APPLICATION_JSON_UTF8)
-				.content(objectMapper.writeValueAsString(create)));		
-		this.mockMvc
-		.perform(get("/api/users/{id}", 100L))
-		.andDo(print())
-		.andExpect(status().isNotFound());
-	}
-	
-	@Test
-	public void getUser_by_letter_id() throws Exception {
-		Request.Create create = new Request.Create();
-		create.setLoginId("testid01");
-		create.setUsername("홍길동");
-		create.setPassword("1234");
-		
-		this.mockMvc
-		.perform(
-				post("/api/users")
-				.contentType(MediaType.APPLICATION_JSON_UTF8)
-				.content(objectMapper.writeValueAsString(create)));		
-		this.mockMvc
-		.perform(get("/api/users/{id}", "a"))
-		.andDo(print())
-		.andExpect(status().isBadRequest());
-	}
-	
-	@Test
+	@Rollback @Test
 	public void getUser_by_username() throws Exception {
+		// get ONE valid user but not found
+		ResultActions result = this.mockMvc.perform(
+				get("/api/users")
+				.param("username", "someone"));
+		result.andDo(print());
+		result.andExpect(status().isNotFound());
+		
+		// get ONE invalid user but bad request
+		// TODO use REGEX for valid parameter and take bad request
+		
+		// get ONE valid user and OK
 		Request.Create create = new Request.Create();
-		create.setLoginId("testid01");
-		create.setUsername("홍길동");
-		create.setPassword("1234");
+		create.setLoginId("testuser01");
+		create.setUsername("testusername01");
+		create.setPassword("password01");
 		
-		this.mockMvc
-		.perform(
-				post("/api/users")
-				.contentType(MediaType.APPLICATION_JSON_UTF8)
-				.content(objectMapper.writeValueAsString(create)));
-		
-		this.mockMvc
-		.perform(get("/api/users")
-				.param("username", "홍길동"))
-		.andDo(print())
-		.andExpect(status().isOk())
-		.andExpect(jsonPath("$.username", is("홍길동")));
+		userService.createUser(create);
+
+		result = this.mockMvc.perform(
+				get("/api/users")
+					.param("username", "testusername01"));
+		result.andDo(print());
+		result.andExpect(status().isOk());
+		result.andExpect(jsonPath("$.username", is("testusername01")));
 	}
-	
-	@Test
-	public void getUser_notFound_by_username() throws Exception {
-		Request.Create create = new Request.Create();
-		create.setLoginId("testid01");
-		create.setUsername("홍길동");
-		create.setPassword("1234");
-		
-		this.mockMvc
-		.perform(
-				post("/api/users")
-				.contentType(MediaType.APPLICATION_JSON_UTF8)
-				.content(objectMapper.writeValueAsString(create)));
-		
-		this.mockMvc
-		.perform(get("/api/users")
-				.param("username", "hugepark"))
-		.andDo(print())
-		.andExpect(status().isNotFound());
-	}
-	
 }

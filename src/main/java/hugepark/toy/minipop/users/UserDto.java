@@ -13,6 +13,7 @@ import org.hibernate.validator.constraints.NotBlank;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 public class UserDto {
 
@@ -46,7 +47,7 @@ public class UserDto {
 		}
 	}
 	
-	@Getter @Setter
+	@Getter @Setter @ToString
 	public static class Reponse {
 		private Long id;
 		

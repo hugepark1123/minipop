@@ -13,6 +13,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.validation.constraints.Size;
 
+import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.NotBlank;
 
 import lombok.Getter;
@@ -38,5 +39,18 @@ public class User {
 	@Size(min = 4)
 	private String password;
 	
+	@Email
+	private String email;
+	
 	private String shift;
+	
+	private int loginTrialCount;
+	
+	private boolean isAccountNonExpired;
+	
+	private boolean isAccountNonLocked;
+	
+	private boolean isCredentialsNonExpired;
+	
+	private boolean isEnabled;
 }
