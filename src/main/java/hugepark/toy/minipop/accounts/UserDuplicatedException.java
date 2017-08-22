@@ -5,7 +5,7 @@
  * @date : 2017-08-17
  * @since : 
  */
-package hugepark.toy.minipop.users;
+package hugepark.toy.minipop.accounts;
 
 import lombok.Getter;
 

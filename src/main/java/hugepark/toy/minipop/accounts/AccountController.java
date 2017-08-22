@@ -5,7 +5,7 @@
  * @date : 2017-08-16
  * @since : 
  */
-package hugepark.toy.minipop.users;
+package hugepark.toy.minipop.accounts;
 
 import java.util.List;
 import java.util.Optional;
@@ -29,17 +29,17 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import hugepark.toy.minipop.accounts.AccountDto.Request;
 import hugepark.toy.minipop.commons.ApiError;
 import hugepark.toy.minipop.commons.HttpRequestExceptionType;
-import hugepark.toy.minipop.users.UserDto.Request;
 import hugepark.toy.minipop.utils.Utils;
 
 @RestController
 @RequestMapping("/api")
-public class UserController {
+public class AccountController {
 	
 	@Autowired
-	private UserService service;
+	private AccountService service;
 	
 	@PostMapping("/users")
 	public ResponseEntity<?> createUser (
@@ -55,64 +55,64 @@ public class UserController {
 			return ResponseEntity.badRequest().body(error);
 		}
 		
-		Optional<User> user = service.createUser(dto);
+		Optional<Account> account = service.createUser(dto);
 		
-		if(user.isPresent() == false) {
+		if(account.isPresent() == false) {
 			throw new Exception("User creation failed");
 		}
 		
 		return ResponseEntity
 				.status(HttpStatus.CREATED)
 				.body(Utils.copyBean(
-						user.get(), 
-						UserDto.Reponse.class));
+						account.get(), 
+						AccountDto.Reponse.class));
 	}
 	
 	@GetMapping("/users")
 	public ResponseEntity<?> getUsers(Pageable pageable) {
-		Page<User> page = service.findAll(pageable);
+		Page<Account> page = service.findAll(pageable);
 		
 		if(page.hasContent() == false) {
 			return ResponseEntity.noContent().build();
 		}
 		
-		List<UserDto.Reponse> content = page.getContent().stream()
-			.map(user -> {
-				UserDto.Reponse dto = new UserDto.Reponse();
-				BeanUtils.copyProperties(user, dto);
+		List<AccountDto.Reponse> content = page.getContent().stream()
+			.map(account -> {
+				AccountDto.Reponse dto = new AccountDto.Reponse();
+				BeanUtils.copyProperties(account, dto);
 				return dto;
 			})
 			.collect(Collectors.toList());
 		
-		PageImpl<UserDto.Reponse> result = new PageImpl<>(content, pageable, page.getTotalElements());
+		PageImpl<AccountDto.Reponse> result = new PageImpl<>(content, pageable, page.getTotalElements());
 		
 		return ResponseEntity.ok(result);
 	}
 	
 	@GetMapping("/users/{id}")
 	public ResponseEntity<?> getUser(@PathVariable Long id) {
-		Optional<User> user = service.findOne(id);
+		Optional<Account> account = service.findOne(id);
 		
-		if(user.isPresent() == false)
+		if(account.isPresent() == false)
 			return ResponseEntity.notFound().build();
 		
 		return ResponseEntity.ok(
 				Utils.copyBean(
-						user.get(),
-						UserDto.Reponse.class));
+						account.get(),
+						AccountDto.Reponse.class));
 	}
 	
 	@GetMapping(value="/users", params="username")
 	public ResponseEntity<?> getUser(@RequestParam String username) {
-		Optional<User> user = service.findByUsername(username);
+		Optional<Account> account = service.findByUsername(username);
 		
-		if(user.isPresent() == false)
+		if(account.isPresent() == false)
 			return ResponseEntity.notFound().build();
 		
 		return ResponseEntity.ok(
 				Utils.copyBean(
-						user.get(),
-						UserDto.Reponse.class));
+						account.get(),
+						AccountDto.Reponse.class));
 	}
 	
 //	@ExceptionHandler(UserDuplicatedException.class)

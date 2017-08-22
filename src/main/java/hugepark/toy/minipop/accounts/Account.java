@@ -5,12 +5,16 @@
  * @date : 2017-08-16
  * @since : 
  */
-package hugepark.toy.minipop.users;
+package hugepark.toy.minipop.accounts;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 import javax.validation.constraints.Size;
 
 import org.hibernate.validator.constraints.Email;
@@ -21,7 +25,7 @@ import lombok.Setter;
 
 @Getter @Setter
 @Entity
-public class User {
+public class Account {
 	
 	@Id @GeneratedValue
 	private Long Id;
@@ -46,11 +50,14 @@ public class User {
 	
 	private int loginTrialCount;
 	
-	private boolean isAccountNonExpired;
+	private boolean accountNonExpired;
 	
-	private boolean isAccountNonLocked;
+	private boolean accountNonLocked;
 	
-	private boolean isCredentialsNonExpired;
+	private boolean credentialsNonExpired;
 	
-	private boolean isEnabled;
+	private boolean enabled;
+	
+	@OneToMany
+	private List<Authority> authorities = new ArrayList<>();
 }

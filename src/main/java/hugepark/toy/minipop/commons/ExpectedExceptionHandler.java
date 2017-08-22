@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
-import hugepark.toy.minipop.users.UserDuplicatedException;
+import hugepark.toy.minipop.accounts.UserDuplicatedException;
 
 @RestControllerAdvice
 public class ExpectedExceptionHandler {

@@ -5,7 +5,10 @@
  * @date : 2017-08-16
  * @since : 
  */
-package hugepark.toy.minipop.users;
+package hugepark.toy.minipop.accounts;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.validation.constraints.Size;
 
@@ -15,7 +18,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
-public class UserDto {
+public class AccountDto {
 
 	public static class Request {
 
@@ -34,6 +37,21 @@ public class UserDto {
 			private String password;
 			
 			private String shift;
+			
+			private String email;
+			
+			private int loginTrialCount;
+			
+			private boolean accountNonExpired;
+			
+			private boolean accountNonLocked;
+			
+			private boolean credentialsNonExpired;
+			
+			private boolean enabled;
+			
+			private List<Authority> authorities = new ArrayList<>();
+			
 		}
 		
 		@Getter @Setter

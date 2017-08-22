@@ -25,7 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import hugepark.toy.minipop.users.UserDto.Request;
+import hugepark.toy.minipop.accounts.AccountDto.Request;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
