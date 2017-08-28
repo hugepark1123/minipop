@@ -8,14 +8,12 @@
 package hugepark.toy.minipop.accounts;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.util.Arrays;
 import java.util.Optional;
 
 import org.junit.Test;
@@ -24,7 +22,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -57,39 +54,6 @@ public class AccountControllerTest {
 //	public void testUserController() {
 //		assertThat(userController).isNotNull();
 //	}
-	
-	@WithMockUser(username="username", password="password", roles={"ADMIN", "USER"})
-	@Test @Rollback
-	public void security() throws Exception {
-		Request.Create create = new Request.Create();
-		create.setLoginId("loginid");
-		create.setUsername("username");
-		create.setPassword("password");
-		create.setEnabled(true);
-		create.setEmail("email@abc.com");
-		
-//		Optional<Account> saved = accountService.createUser(create);
-		
-//		Authority auth1 = new Authority();
-//		auth1.setAccount(saved.get());
-//		auth1.setRole(Role.ADMIN);
-//		
-//		Authority auth2 = new Authority();
-//		auth2.setAccount(saved.get());
-//		auth2.setRole(Role.USER);
-		
-//		create.setAuthorities(Arrays.asList(auth1, auth2));
-		
-		ResultActions result = this.mockMvc
-				.perform(
-						post("/api/users")
-						.with(csrf())
-						.contentType(MediaType.APPLICATION_JSON_UTF8)
-						.content(objectMapper.writeValueAsString(create)));
-			result.andDo(print());
-			result.andExpect(status().isCreated());
-			result.andExpect(jsonPath("$.username", is("username")));
-	}
 	
 	@Test @Rollback
 	public void createUser() throws Exception {
